@@ -37,24 +37,41 @@ const getSourceName = (url?: string) => {
   <main>
     <article class="log-article">
       <div class="article-header">
-        <a href="/" class="back-link">← 返回列表</a>
+        <a href="/" class="back-link">
+          <span class="material-symbols-outlined">arrow_back</span>
+          <span>返回列表</span>
+        </a>
 
         <h1>{log.data.title}</h1>
 
         <div class="meta">
-          <time datetime={log.data.date.toISOString()}>
-            📅 {formatDate(log.data.date)}
-          </time>
+          <div class="meta-item">
+            <span class="material-symbols-outlined">calendar_today</span>
+            <time datetime={log.data.date.toISOString()}>
+              {formatDate(log.data.date)}
+            </time>
+          </div>
 
           {log.data.source && (
-            <a href={log.data.source} target="_blank" rel="noopener noreferrer" class="source-link">
-              📡 {getSourceName(log.data.source)}
+            <a href={log.data.source} target="_blank" rel="noopener noreferrer" class="meta-item source-link">
+              <span class="material-symbols-outlined">link</span>
+              <span>{getSourceName(log.data.source)}</span>
             </a>
           )}
 
           <div class="badges">
-            {log.data.translated && <span class="badge translated">已翻译</span>}
-            {log.data.format && <span class="badge format">{log.data.format.toUpperCase()}</span>}
+            {log.data.translated && (
+              <span class="badge translated">
+                <span class="material-symbols-outlined">translate</span>
+                已翻译
+              </span>
+            )}
+            {log.data.format && (
+              <span class="badge format">
+                <span class="material-symbols-outlined">description</span>
+                {log.data.format.toUpperCase()}
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -64,7 +81,10 @@ const getSourceName = (url?: string) => {
       </div>
 
       <div class="article-footer">
-        <a href="/" class="back-link">← 返回列表</a>
+        <a href="/" class="back-link">
+          <span class="material-symbols-outlined">arrow_back</span>
+          <span>返回列表</span>
+        </a>
       </div>
     </article>
   </main>
@@ -82,31 +102,46 @@ const getSourceName = (url?: string) => {
 
   .log-article {
     background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: var(--glass-border);
+    border-radius: 20px;
     overflow: hidden;
+    box-shadow: var(--shadow);
   }
 
   .article-header {
     padding: 2rem;
-    border-bottom: 1px solid var(--border);
+    border-bottom: var(--glass-border);
   }
 
   .back-link {
-    color: var(--text-secondary);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    color: var(--text-muted);
     font-size: 0.9rem;
-    display: inline-block;
     margin-bottom: 1.5rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: 8px;
+    transition: all 0.2s ease;
   }
 
   .back-link:hover {
-    color: var(--accent);
+    color: var(--primary);
+    background: rgba(37, 99, 235, 0.08);
+  }
+
+  .back-link .material-symbols-outlined {
+    font-size: 1.125rem;
   }
 
   h1 {
     font-size: 1.75rem;
-    margin-bottom: 1rem;
+    font-weight: 700;
+    margin-bottom: 1.25rem;
     line-height: 1.4;
+    letter-spacing: -0.02em;
   }
 
   .meta {
@@ -114,12 +149,22 @@ const getSourceName = (url?: string) => {
     flex-wrap: wrap;
     gap: 1rem;
     align-items: center;
-    color: var(--text-secondary);
-    font-size: 0.9rem;
+  }
+
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+  }
+
+  .meta-item .material-symbols-outlined {
+    font-size: 1rem;
   }
 
   .source-link {
-    color: var(--text-secondary);
+    transition: color 0.2s ease;
   }
 
   .source-link:hover {
@@ -133,19 +178,26 @@ const getSourceName = (url?: string) => {
   }
 
   .badge {
-    padding: 0.2rem 0.6rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.625rem;
     border-radius: 20px;
     font-size: 0.75rem;
     font-weight: 500;
   }
 
+  .badge .material-symbols-outlined {
+    font-size: 0.875rem;
+  }
+
   .badge.translated {
-    background: rgba(34, 211, 238, 0.15);
+    background: rgba(14, 165, 233, 0.1);
     color: var(--accent);
   }
 
   .badge.format {
-    background: rgba(59, 130, 246, 0.15);
+    background: rgba(37, 99, 235, 0.1);
     color: var(--primary);
   }
 
@@ -155,31 +207,59 @@ const getSourceName = (url?: string) => {
   }
 
   .article-content :global(h2) {
-    font-size: 1.4rem;
+    font-size: 1.375rem;
+    font-weight: 600;
     margin: 2rem 0 1rem;
     padding-bottom: 0.5rem;
-    border-bottom: 1px solid var(--border);
+    border-bottom: var(--glass-border);
+    letter-spacing: -0.01em;
   }
 
   .article-content :global(h3) {
-    font-size: 1.2rem;
+    font-size: 1.125rem;
+    font-weight: 600;
     margin: 1.5rem 0 0.75rem;
   }
 
   .article-content :global(p) {
     margin-bottom: 1rem;
+    color: var(--text);
   }
 
   .article-content :global(blockquote) {
     border-left: 3px solid var(--primary);
-    padding-left: 1rem;
+    padding: 0.75rem 1rem;
     margin: 1rem 0;
+    background: rgba(37, 99, 235, 0.05);
+    border-radius: 0 8px 8px 0;
     color: var(--text-secondary);
+  }
+
+  .article-content :global(ul),
+  .article-content :global(ol) {
+    margin: 1rem 0;
+    padding-left: 1.5rem;
+  }
+
+  .article-content :global(li) {
+    margin-bottom: 0.5rem;
+  }
+
+  .article-content :global(a) {
+    color: var(--primary);
+    text-decoration: underline;
+    text-decoration-color: rgba(37, 99, 235, 0.3);
+    text-underline-offset: 2px;
+    transition: text-decoration-color 0.2s ease;
+  }
+
+  .article-content :global(a:hover) {
+    text-decoration-color: var(--primary);
   }
 
   .article-footer {
     padding: 1.5rem 2rem;
-    border-top: 1px solid var(--border);
+    border-top: var(--glass-border);
   }
 
   @media (max-width: 640px) {
@@ -194,7 +274,7 @@ const getSourceName = (url?: string) => {
     }
 
     h1 {
-      font-size: 1.4rem;
+      font-size: 1.375rem;
     }
 
     .meta {
