@@ -1,0 +1,42 @@
+<footer>
+  <div class="footer-content">
+    <p>&copy; {new Date().getFullYear()} Turningcat. Powered by Astro & Cloudflare Pages</p>
+    <p class="links">
+      <a href="https://github.com/Youzix-Star/Turningcat-Log" target="_blank">GitHub</a>
+      <span>·</span>
+      <a href="/rss.xml">RSS</a>
+    </p>
+  </div>
+</footer>
+
+<style>
+  footer {
+    background: var(--bg-card);
+    border-top: 1px solid var(--border);
+    margin-top: auto;
+  }
+
+  .footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+  }
+
+  .links {
+    margin-top: 0.5rem;
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .links a {
+    color: var(--text-secondary);
+  }
+
+  .links a:hover {
+    color: var(--accent);
+  }
+</style>

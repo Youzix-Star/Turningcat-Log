@@ -1,0 +1,147 @@
+---
+interface Props {
+  title: string;
+  date: Date;
+  source?: string;
+  slug: string;
+  translated?: boolean;
+  format?: string;
+  excerpt?: string;
+}
+
+const { title, date, source, slug, translated, format, excerpt } = Astro.props;
+
+const formatDate = (d: Date) => {
+  return d.toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+};
+
+const getSourceName = (url?: string) => {
+  if (!url) return '未知来源';
+  const match = url.match(/t\.me\/([^/]+)/);
+  return match ? `@${match[1]}` : '频道';
+};
+---
+
+<article class="log-card">
+  <div class="card-header">
+    <time datetime={date.toISOString()}>{formatDate(date)}</time>
+    <div class="badges">
+      {translated && <span class="badge translated">已翻译</span>}
+      {format && <span class="badge format">{format.toUpperCase()}</span>}
+    </div>
+  </div>
+
+  <h2>
+    <a href={`/log/${slug}`}>{title}</a>
+  </h2>
+
+  {source && (
+    <a href={source} target="_blank" rel="noopener noreferrer" class="source">
+      📡 {getSourceName(source)}
+    </a>
+  )}
+
+  {excerpt && <p class="excerpt">{excerpt}</p>}
+
+  <a href={`/log/${slug}`} class="read-more">
+    查看全文 →
+  </a>
+</article>
+
+<style>
+  .log-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+
+  .log-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--primary);
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+  }
+
+  time {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+  }
+
+  .badges {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .badge {
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .badge.translated {
+    background: rgba(34, 211, 238, 0.15);
+    color: var(--accent);
+  }
+
+  .badge.format {
+    background: rgba(59, 130, 246, 0.15);
+    color: var(--primary);
+  }
+
+  h2 {
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+  }
+
+  h2 a {
+    color: var(--text);
+  }
+
+  h2 a:hover {
+    color: var(--accent);
+  }
+
+  .source {
+    display: inline-block;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .source:hover {
+    color: var(--accent);
+  }
+
+  .excerpt {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .read-more {
+    color: var(--primary);
+    font-weight: 500;
+    font-size: 0.9rem;
+  }
+
+  .read-more:hover {
+    color: var(--accent);
+  }
+</style>

@@ -1,0 +1,209 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const logs = await getCollection('logs');
+  return logs.map(log => ({
+    params: { slug: log.slug },
+    props: { log },
+  }));
+}
+
+const { log } = Astro.props;
+const { Content } = await log.render();
+
+const formatDate = (d: Date) => {
+  return d.toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    weekday: 'long',
+  });
+};
+
+const getSourceName = (url?: string) => {
+  if (!url) return '未知来源';
+  const match = url.match(/t\.me\/([^/]+)/);
+  return match ? `@${match[1]}` : '频道';
+};
+---
+
+<BaseLayout title={`${log.data.title} - Turningcat Log`}>
+  <Header />
+
+  <main>
+    <article class="log-article">
+      <div class="article-header">
+        <a href="/" class="back-link">← 返回列表</a>
+
+        <h1>{log.data.title}</h1>
+
+        <div class="meta">
+          <time datetime={log.data.date.toISOString()}>
+            📅 {formatDate(log.data.date)}
+          </time>
+
+          {log.data.source && (
+            <a href={log.data.source} target="_blank" rel="noopener noreferrer" class="source-link">
+              📡 {getSourceName(log.data.source)}
+            </a>
+          )}
+
+          <div class="badges">
+            {log.data.translated && <span class="badge translated">已翻译</span>}
+            {log.data.format && <span class="badge format">{log.data.format.toUpperCase()}</span>}
+          </div>
+        </div>
+      </div>
+
+      <div class="article-content">
+        <Content />
+      </div>
+
+      <div class="article-footer">
+        <a href="/" class="back-link">← 返回列表</a>
+      </div>
+    </article>
+  </main>
+
+  <Footer />
+</BaseLayout>
+
+<style>
+  main {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+    min-height: calc(100vh - 200px);
+  }
+
+  .log-article {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .article-header {
+    padding: 2rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .back-link {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    display: inline-block;
+    margin-bottom: 1.5rem;
+  }
+
+  .back-link:hover {
+    color: var(--accent);
+  }
+
+  h1 {
+    font-size: 1.75rem;
+    margin-bottom: 1rem;
+    line-height: 1.4;
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+  }
+
+  .source-link {
+    color: var(--text-secondary);
+  }
+
+  .source-link:hover {
+    color: var(--accent);
+  }
+
+  .badges {
+    display: flex;
+    gap: 0.5rem;
+    margin-left: auto;
+  }
+
+  .badge {
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .badge.translated {
+    background: rgba(34, 211, 238, 0.15);
+    color: var(--accent);
+  }
+
+  .badge.format {
+    background: rgba(59, 130, 246, 0.15);
+    color: var(--primary);
+  }
+
+  .article-content {
+    padding: 2rem;
+    line-height: 1.8;
+  }
+
+  .article-content :global(h2) {
+    font-size: 1.4rem;
+    margin: 2rem 0 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .article-content :global(h3) {
+    font-size: 1.2rem;
+    margin: 1.5rem 0 0.75rem;
+  }
+
+  .article-content :global(p) {
+    margin-bottom: 1rem;
+  }
+
+  .article-content :global(blockquote) {
+    border-left: 3px solid var(--primary);
+    padding-left: 1rem;
+    margin: 1rem 0;
+    color: var(--text-secondary);
+  }
+
+  .article-footer {
+    padding: 1.5rem 2rem;
+    border-top: 1px solid var(--border);
+  }
+
+  @media (max-width: 640px) {
+    main {
+      padding: 1rem;
+    }
+
+    .article-header,
+    .article-content,
+    .article-footer {
+      padding: 1.5rem;
+    }
+
+    h1 {
+      font-size: 1.4rem;
+    }
+
+    .meta {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .badges {
+      margin-left: 0;
+    }
+  }
+</style>
