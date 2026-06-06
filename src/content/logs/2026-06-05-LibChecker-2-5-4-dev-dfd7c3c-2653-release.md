@@ -16,8 +16,8 @@ Snapshot apk is attached
 
 ## 简体中文
 
-新推送到GitHub ！
-其他变更。
-作者： Absinthe
-在此处查看提交详细信息
+推送至github！
+其他更改。
+苦艾酒
+请在此处查看提交详细信息
 已附加快照apk
