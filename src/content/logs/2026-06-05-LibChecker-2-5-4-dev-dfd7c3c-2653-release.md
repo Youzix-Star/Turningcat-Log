@@ -3,7 +3,7 @@ title: "LibChecker-2.5.4.dev.dfd7c3c-2653-release"
 date: 2026-06-05T14:31:54.000Z
 source: "https://t.me/libchecker_ci"
 format: txt
-translated: false
+translated: true
 ---
 
 ## 原文
@@ -14,4 +14,10 @@ by Absinthe
 See commit detail here
 Snapshot apk is attached
 
+## 简体中文
 
+新推送到GitHub ！
+其他变更。
+作者： Absinthe
+在此处查看提交详细信息
+已附加快照apk
