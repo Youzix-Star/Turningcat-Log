@@ -57,6 +57,9 @@ const translatedCount = logs.filter(log => log.data.translated).length;
             translated={log.data.translated}
             format={log.data.format}
             excerpt={log.body?.substring(0, 150)}
+            channelName={log.data.channelName}
+            channelUsername={log.data.channelUsername}
+            channelAvatar={log.data.channelAvatar}
           />
         ))
       )}
