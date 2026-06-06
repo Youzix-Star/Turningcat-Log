@@ -16,8 +16,8 @@ Snapshot apk is attached
 
 ## 简体中文
 
-新推送到GitHub！
+新推送到 GitHub！
 杂项更改。
-由Absinthe提交
-在此查看提交详情
-附上快照apk
+作者：Absinthe
+查看提交详情
+附有快照 APK
