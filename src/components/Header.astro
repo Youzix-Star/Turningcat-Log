@@ -13,14 +13,13 @@ const currentPath = Astro.url.pathname;
         <span class="material-symbols-outlined">home</span>
         <span>首页</span>
       </a>
-      <a href="https://t.me/Turningcat_bot" target="_blank" class="bot-link">
-        <span class="material-symbols-outlined">smart_toy</span>
-        <span>Telegram Bot</span>
-      </a>
       <button class="theme-toggle" id="themeToggle" aria-label="切换深色模式">
         <span class="material-symbols-outlined theme-icon-light">light_mode</span>
         <span class="material-symbols-outlined theme-icon-dark">dark_mode</span>
       </button>
+      <a href="https://t.me/Turningcat_bot" target="_blank" class="bot-link" title="Telegram Bot">
+        <span class="material-symbols-outlined">smart_toy</span>
+      </a>
     </div>
   </nav>
 </header>
@@ -30,13 +29,11 @@ const currentPath = Astro.url.pathname;
     const themeToggle = document.getElementById('themeToggle');
     const html = document.documentElement;
     
-    // 初始化主题
     const savedTheme = localStorage.getItem('theme') || 'light';
     if (savedTheme === 'dark') {
       html.classList.add('dark');
     }
     
-    // 切换主题
     themeToggle.addEventListener('click', () => {
       html.classList.toggle('dark');
       const isDark = html.classList.contains('dark');
@@ -92,7 +89,7 @@ const currentPath = Astro.url.pathname;
     align-items: center;
   }
 
-  .nav-links a {
+  .nav-links a:not(.bot-link) {
     display: flex;
     align-items: center;
     gap: 0.375rem;
@@ -104,34 +101,14 @@ const currentPath = Astro.url.pathname;
     transition: all 0.2s ease;
   }
 
-  .nav-links a:hover,
-  .nav-links a.active {
+  .nav-links a:not(.bot-link):hover,
+  .nav-links a:not(.bot-link).active {
     color: var(--primary);
     background: rgba(37, 99, 235, 0.08);
   }
 
-  .nav-links a .material-symbols-outlined {
+  .nav-links a:not(.bot-link) .material-symbols-outlined {
     font-size: 1.125rem;
-  }
-
-  .bot-link {
-    background: var(--primary) !important;
-    color: white !important;
-    padding: 0.5rem 1rem !important;
-    border-radius: 8px !important;
-    font-size: 0.875rem !important;
-    box-shadow: var(--shadow);
-    transition: all 0.2s ease !important;
-  }
-
-  .bot-link:hover {
-    background: var(--primary-dark) !important;
-    box-shadow: var(--shadow-md);
-    transform: translateY(-1px);
-  }
-
-  .bot-link .material-symbols-outlined {
-    font-size: 1rem !important;
   }
 
   /* 主题切换按钮 */
@@ -198,22 +175,37 @@ const currentPath = Astro.url.pathname;
     background: var(--primary);
   }
 
+  /* Bot 按钮 - 最右边，只显示图标 */
+  .bot-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: var(--primary);
+    color: white !important;
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    transition: all 0.2s ease !important;
+  }
+
+  .bot-link:hover {
+    background: var(--primary-dark);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+  }
+
+  .bot-link .material-symbols-outlined {
+    font-size: 1.25rem;
+  }
+
   @media (max-width: 640px) {
     nav {
       padding: 0.75rem 1rem;
     }
 
-    .nav-links a span:not(.material-symbols-outlined) {
+    .nav-links a:not(.bot-link) span:not(.material-symbols-outlined) {
       display: none;
-    }
-
-    .bot-link span:not(.material-symbols-outlined) {
-      display: inline !important;
-    }
-
-    .bot-link {
-      font-size: 0.8rem !important;
-      padding: 0.4rem 0.75rem !important;
     }
   }
 </style>

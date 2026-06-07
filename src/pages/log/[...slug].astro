@@ -42,20 +42,10 @@ const excerpt = log.body?.substring(0, 100) || '';
   <main>
     <article class="log-article">
       <div class="article-header">
-        <div class="header-top">
-          <a href="/" class="back-link">
-            <span class="material-symbols-outlined">arrow_back</span>
-            <span>返回列表</span>
-          </a>
-          
-          <ShareCard 
-            title={log.data.title}
-            url={currentUrl}
-            channelName={log.data.channelName}
-            date={log.data.date}
-            excerpt={excerpt}
-          />
-        </div>
+        <a href="/" class="back-link">
+          <span class="material-symbols-outlined">arrow_back</span>
+          <span>返回列表</span>
+        </a>
 
         <div class="channel-section">
           {log.data.channelAvatar ? (
@@ -126,10 +116,19 @@ const excerpt = log.body?.substring(0, 100) || '';
       </div>
 
       <div class="article-footer">
-        <a href="/" class="back-link">
-          <span class="material-symbols-outlined">arrow_back</span>
-          <span>返回列表</span>
-        </a>
+        <div class="footer-actions">
+          <a href="/" class="back-link">
+            <span class="material-symbols-outlined">arrow_back</span>
+            <span>返回列表</span>
+          </a>
+          <ShareCard 
+            title={log.data.title}
+            url={currentUrl}
+            channelName={log.data.channelName}
+            date={log.data.date}
+            excerpt={excerpt}
+          />
+        </div>
       </div>
     </article>
   </main>
@@ -160,13 +159,6 @@ const excerpt = log.body?.substring(0, 100) || '';
     border-bottom: var(--glass-border);
   }
 
-  .header-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1.5rem;
-  }
-
   .back-link {
     display: inline-flex;
     align-items: center;
@@ -191,10 +183,11 @@ const excerpt = log.body?.substring(0, 100) || '';
     display: flex;
     align-items: center;
     gap: 1rem;
-    margin-bottom: 1.5rem;
+    margin: 1.5rem 0;
     padding: 1rem;
     background: var(--bg-secondary);
     border-radius: 12px;
+    transition: background 0.3s ease;
   }
 
   .channel-avatar {
@@ -395,9 +388,17 @@ const excerpt = log.body?.substring(0, 100) || '';
     text-decoration-color: var(--primary);
   }
 
+  /* 文章底部 */
   .article-footer {
     padding: 1.5rem 2rem;
     border-top: var(--glass-border);
+  }
+
+  .footer-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
   }
 
   @media (max-width: 640px) {
@@ -409,12 +410,6 @@ const excerpt = log.body?.substring(0, 100) || '';
     .article-content,
     .article-footer {
       padding: 1.5rem;
-    }
-
-    .header-top {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 1rem;
     }
 
     .channel-section {
@@ -442,6 +437,10 @@ const excerpt = log.body?.substring(0, 100) || '';
 
     .badges {
       margin-left: 0;
+    }
+
+    .footer-actions {
+      flex-direction: column;
     }
   }
 </style>
