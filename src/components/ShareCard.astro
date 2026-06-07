@@ -1,3 +1,4 @@
+
 ---
 interface Props {
   title: string;
@@ -18,21 +19,27 @@ const { title, url, channelName, date, excerpt } = Astro.props;
 </div>
 
 <!-- 分享卡片弹窗 -->
-<div class="share-modal" id="shareModal">
-  <div class="share-modal-content">
-    <div class="share-modal-header">
-      <h3>分享文章</h3>
-      <button class="close-btn" id="closeShareModal">
+<div class="dialog-overlay" id="shareModal">
+  <div class="dialog-card">
+    <div class="dialog-header">
+      <span class="dialog-icon material-symbols-outlined">qr_code_2</span>
+      <button class="dialog-close" id="closeShareModal">
         <span class="material-symbols-outlined">close</span>
       </button>
     </div>
+    <div class="dialog-title">分享文章</div>
+    <div class="dialog-message">保存下方图片，分享给好友</div>
     <div class="share-preview">
       <canvas id="shareCanvas" width="800" height="400"></canvas>
     </div>
-    <div class="share-actions">
-      <button class="download-btn" id="downloadBtn">
+    <div class="dialog-actions">
+      <button class="btn-ghost" id="closeShareBtn">
+        <span class="material-symbols-outlined">close</span>
+        关闭
+      </button>
+      <button class="btn-primary" id="downloadBtn">
         <span class="material-symbols-outlined">download</span>
-        <span>保存图片</span>
+        保存图片
       </button>
     </div>
   </div>
@@ -43,11 +50,10 @@ const { title, url, channelName, date, excerpt } = Astro.props;
   const ICONS = {
     group: `<svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24"><path fill="currentColor" d="M0-240v-63q0-43 44-70t116-27q13 0 26.5 1.5t26.5 4.5q-12 21-18 43t-6 45v65H0Zm240 0v-65q0-32 17.5-58.5T307-410q32-24 76.5-38t96.5-14q53 0 97.5 14t76.5 38q32 24 49 50.5t17 58.5v65H240Zm540 0v-65q0-24-6-46t-18-43q13-3 26-4.5t26-1.5q72 0 116 27t44 70v63H780ZM160-440q-33 0-56.5-23.5T80-520q0-33 23.5-56.5T160-600q33 0 56.5 23.5T240-520q0 33-23.5 56.5T160-440Zm640 0q-33 0-56.5-23.5T720-520q0-33 23.5-56.5T800-600q33 0 56.5 23.5T880-520q0 33-23.5 56.5T800-440Zm-320-40q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Z"/></svg>`,
     calendar: `<svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20"><path fill="currentColor" d="M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-80h80v80h320v-80h80v80h40q33 0 56.5 23.5T840-720v560q0 33-23.5 56.5T760-80H200Zm0-80h560v-400H200v400Zm0-480h560v-80H200v80Zm0 0v-80 80Z"/></svg>`,
-    link: `<svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20"><path fill="currentColor" d="M440-280H280q-83 0-141.5-58.5T80-480q0-83 58.5-141.5T280-680h160v80H280q-50 0-85 35t-35 85q0 50 35 85t85 85h160v80ZM320-440v-80h320v80H320Zm200 160v-80h160q50 0 85-35t35-85q0-50-35-85t-85-85H520v-80h160q83 0 141.5 58.5T880-480q0 83-58.5 141.5T680-280H520Z"/></svg>`,
   };
 
   // 将 SVG 转为图片
-  function svgToImage(svgString, size = 24) {
+  function svgToImage(svgString) {
     return new Promise((resolve, reject) => {
       const img = new Image();
       const blob = new Blob([svgString], { type: 'image/svg+xml' });
@@ -65,27 +71,34 @@ const { title, url, channelName, date, excerpt } = Astro.props;
     const shareBtn = document.getElementById('shareBtn');
     const shareModal = document.getElementById('shareModal');
     const closeShareModal = document.getElementById('closeShareModal');
+    const closeShareBtn = document.getElementById('closeShareBtn');
     const downloadBtn = document.getElementById('downloadBtn');
     const canvas = document.getElementById('shareCanvas');
     const ctx = canvas.getContext('2d');
 
     // 打开弹窗
     shareBtn.addEventListener('click', async () => {
-      shareModal.classList.add('active');
+      shareModal.classList.add('open');
       document.body.style.overflow = 'hidden';
       await generateShareCard();
     });
 
     // 关闭弹窗
-    closeShareModal.addEventListener('click', () => {
-      shareModal.classList.remove('active');
+    function closeModal() {
+      shareModal.classList.remove('open');
       document.body.style.overflow = '';
+    }
+
+    closeShareModal.addEventListener('click', closeModal);
+    closeShareBtn.addEventListener('click', closeModal);
+    shareModal.addEventListener('click', (e) => {
+      if (e.target === shareModal) closeModal();
     });
 
-    shareModal.addEventListener('click', (e) => {
-      if (e.target === shareModal) {
-        shareModal.classList.remove('active');
-        document.body.style.overflow = '';
+    // ESC 关闭
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && shareModal.classList.contains('open')) {
+        closeModal();
       }
     });
 
@@ -226,7 +239,6 @@ const { title, url, channelName, date, excerpt } = Astro.props;
 
       // 频道名称
       if (channelName) {
-        // 绘制 group 图标
         await drawIcon(ICONS.group, rightX, titleY + 2, 18, '#64748b');
         
         ctx.fillStyle = '#64748b';
@@ -242,14 +254,13 @@ const { title, url, channelName, date, excerpt } = Astro.props;
         day: 'numeric',
       });
       
-      // 绘制 calendar 图标
       await drawIcon(ICONS.calendar, rightX, titleY + 2, 16, '#94a3b8');
       
       ctx.fillStyle = '#94a3b8';
       ctx.font = '13px sans-serif';
       ctx.fillText(formattedDate, rightX + 22, titleY + 15);
 
-      // 摘要（如果有）
+      // 摘要
       if (excerpt) {
         ctx.fillStyle = '#64748b';
         const excerptFont = '13px sans-serif';
@@ -319,87 +330,107 @@ const { title, url, channelName, date, excerpt } = Astro.props;
     font-size: 1.125rem;
   }
 
-  /* 弹窗样式 - 毛玻璃效果 */
-  .share-modal {
-    display: none;
+  /* 弹窗样式 - 仿 Apple 风格 */
+  .dialog-overlay {
     position: fixed;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(15, 23, 42, 0.3);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    z-index: 1000;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 2000;
+    display: flex;
     align-items: center;
     justify-content: center;
-    padding: 2rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s cubic-bezier(0.22, 0.61, 0.36, 1);
   }
 
-  .share-modal.active {
-    display: flex;
+  .dialog-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
   }
 
-  .share-modal-content {
-    background: rgba(255, 255, 255, 0.95);
+  .dialog-card {
+    background: rgba(255, 255, 255, 0.92);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    border-radius: 20px;
-    padding: 1.5rem;
-    max-width: 90vw;
-    max-height: 90vh;
-    overflow: auto;
+    border-radius: 24px;
+    padding: 32px;
+    max-width: 500px;
+    width: 90%;
+    text-align: center;
     box-shadow: 
-      0 20px 60px rgba(0, 0, 0, 0.15),
-      0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+      0 32px 64px rgba(0, 0, 0, 0.12),
+      0 0 0 1px rgba(255, 255, 255, 0.6);
+    transform: translateY(20px);
+    transition: transform 0.3s cubic-bezier(0.22, 0.61, 0.36, 1);
+    border: 1px solid rgba(255, 255, 255, 0.5);
   }
 
-  .share-modal-header {
+  .dialog-overlay.open .dialog-card {
+    transform: translateY(0);
+  }
+
+  .dialog-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 1.25rem;
+    margin-bottom: 12px;
   }
 
-  .share-modal-header h3 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #0f172a;
-    margin: 0;
+  .dialog-icon {
+    font-size: 40px;
+    color: var(--primary);
   }
 
-  .close-btn {
+  .dialog-close {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
-    background: rgba(241, 245, 249, 0.8);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(226, 232, 240, 0.5);
-    border-radius: 10px;
+    width: 32px;
+    height: 32px;
+    background: rgba(0, 0, 0, 0.06);
+    border: none;
+    border-radius: 50%;
     cursor: pointer;
     transition: all 0.2s ease;
   }
 
-  .close-btn:hover {
-    background: rgba(226, 232, 240, 0.9);
-    transform: scale(1.05);
+  .dialog-close:hover {
+    background: rgba(0, 0, 0, 0.1);
+    transform: scale(1.1);
   }
 
-  .close-btn .material-symbols-outlined {
-    font-size: 1.25rem;
-    color: #64748b;
+  .dialog-close .material-symbols-outlined {
+    font-size: 18px;
+    color: #666;
+  }
+
+  .dialog-title {
+    font-family: 'Noto Sans SC', 'Inter', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #1d1d1f;
+  }
+
+  .dialog-message {
+    font-size: 0.9rem;
+    color: #86868b;
+    margin-bottom: 20px;
+    line-height: 1.5;
   }
 
   .share-preview {
-    margin-bottom: 1.25rem;
-    border-radius: 12px;
+    margin-bottom: 24px;
+    border-radius: 16px;
     overflow: hidden;
-    box-shadow: 
-      0 4px 12px rgba(0, 0, 0, 0.1),
-      0 0 0 1px rgba(226, 232, 240, 0.5);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(0, 0, 0, 0.06);
   }
 
   .share-preview canvas {
@@ -408,34 +439,85 @@ const { title, url, channelName, date, excerpt } = Astro.props;
     height: auto;
   }
 
-  .share-actions {
+  .dialog-actions {
     display: flex;
+    gap: 12px;
     justify-content: center;
   }
 
-  .download-btn {
+  .btn-ghost {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 2rem;
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: white;
-    border: none;
-    border-radius: 10px;
-    font-size: 0.95rem;
+    gap: 6px;
+    background: #f5f5f7;
+    color: #1d1d1f;
+    padding: 10px 20px;
+    border-radius: 9999px;
+    text-decoration: none;
     font-weight: 500;
+    font-size: 14px;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    transition: all 0.2s cubic-bezier(0.22, 0.61, 0.36, 1);
     cursor: pointer;
-    transition: all 0.2s ease;
     font-family: inherit;
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
   }
 
-  .download-btn:hover {
+  .btn-ghost:hover {
+    background: #ebebed;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  }
+
+  .btn-ghost .material-symbols-outlined {
+    font-size: 16px;
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #0066cc;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 9999px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    box-shadow: 0 4px 14px rgba(0, 102, 204, 0.22);
+    transition: all 0.2s cubic-bezier(0.22, 0.61, 0.36, 1);
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  .btn-primary:hover {
+    background: #0071e3;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    box-shadow: 0 8px 24px rgba(0, 102, 204, 0.32);
   }
 
-  .download-btn .material-symbols-outlined {
-    font-size: 1.25rem;
+  .btn-primary .material-symbols-outlined {
+    font-size: 16px;
+  }
+
+  @media (max-width: 480px) {
+    .dialog-card {
+      padding: 24px;
+      border-radius: 20px;
+    }
+
+    .dialog-title {
+      font-size: 1.25rem;
+    }
+
+    .dialog-actions {
+      flex-direction: column;
+    }
+
+    .dialog-actions button {
+      width: 100%;
+      justify-content: center;
+    }
   }
 </style>
