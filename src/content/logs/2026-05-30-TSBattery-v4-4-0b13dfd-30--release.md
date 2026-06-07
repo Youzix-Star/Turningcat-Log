@@ -6,7 +6,7 @@ channelName: "TSBattery CI Builds"
 channelUsername: "TSBattery_CI"
 channelAvatar: "/avatars/TSBattery_CI.jpg"
 format: txt
-translated: true
+translated: false
 tags: ["TSBattery"]
 ---
 
@@ -15,11 +15,6 @@ tags: ["TSBattery"]
 New push to GitHub!
 chore: bump dependencies
 by fankesyooni
-See commit detail here
+See commit detail [here](https://github.com/fankes/TSBattery/commit/0b13dfd024bd320f4e523d171b8efd423c31eeed)
 
-## 简体中文
 
-新推送到 GitHub！
-杂务：更新依赖项
-作者：fankesyooni
-查看提交详情
