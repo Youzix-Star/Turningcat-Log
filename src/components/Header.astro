@@ -17,9 +17,33 @@ const currentPath = Astro.url.pathname;
         <span class="material-symbols-outlined">smart_toy</span>
         <span>Telegram Bot</span>
       </a>
+      <button class="theme-toggle" id="themeToggle" aria-label="切换深色模式">
+        <span class="material-symbols-outlined theme-icon-light">light_mode</span>
+        <span class="material-symbols-outlined theme-icon-dark">dark_mode</span>
+      </button>
     </div>
   </nav>
 </header>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const themeToggle = document.getElementById('themeToggle');
+    const html = document.documentElement;
+    
+    // 初始化主题
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    if (savedTheme === 'dark') {
+      html.classList.add('dark');
+    }
+    
+    // 切换主题
+    themeToggle.addEventListener('click', () => {
+      html.classList.toggle('dark');
+      const isDark = html.classList.contains('dark');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    });
+  });
+</script>
 
 <style>
   header {
@@ -31,6 +55,7 @@ const currentPath = Astro.url.pathname;
     -webkit-backdrop-filter: var(--glass-blur);
     border-bottom: var(--glass-border);
     box-shadow: var(--shadow);
+    transition: background 0.3s ease, border-color 0.3s ease;
   }
 
   nav {
@@ -107,6 +132,70 @@ const currentPath = Astro.url.pathname;
 
   .bot-link .material-symbols-outlined {
     font-size: 1rem !important;
+  }
+
+  /* 主题切换按钮 */
+  .theme-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .theme-toggle:hover {
+    background: var(--primary);
+    border-color: var(--primary);
+    transform: scale(1.05);
+  }
+
+  .theme-toggle:hover .material-symbols-outlined {
+    color: white;
+  }
+
+  .theme-toggle .material-symbols-outlined {
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+    transition: color 0.2s ease;
+    position: absolute;
+  }
+
+  .theme-icon-light {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+
+  .theme-icon-dark {
+    opacity: 0;
+    transform: rotate(-90deg) scale(0.5);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+
+  :root.dark .theme-icon-light {
+    opacity: 0;
+    transform: rotate(90deg) scale(0.5);
+  }
+
+  :root.dark .theme-icon-dark {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+  }
+
+  :root.dark .theme-toggle {
+    background: rgba(59, 130, 246, 0.15);
+    border-color: rgba(59, 130, 246, 0.3);
+  }
+
+  :root.dark .theme-toggle:hover {
+    background: var(--primary);
   }
 
   @media (max-width: 640px) {
