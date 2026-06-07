@@ -1,0 +1,392 @@
+---
+interface Props {
+  title: string;
+  url: string;
+  channelName?: string;
+  date: Date;
+  excerpt?: string;
+}
+
+const { title, url, channelName, date, excerpt } = Astro.props;
+
+const formatDate = (d: Date) => {
+  return d.toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+};
+---
+
+<div class="share-container">
+  <button class="share-btn" id="shareBtn">
+    <span class="material-symbols-outlined">share</span>
+    <span>分享</span>
+  </button>
+</div>
+
+<!-- 分享卡片弹窗 -->
+<div class="share-modal" id="shareModal">
+  <div class="share-modal-content">
+    <div class="share-modal-header">
+      <h3>分享文章</h3>
+      <button class="close-btn" id="closeShareModal">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div class="share-preview">
+      <canvas id="shareCanvas" width="800" height="400"></canvas>
+    </div>
+    <div class="share-actions">
+      <button class="download-btn" id="downloadBtn">
+        <span class="material-symbols-outlined">download</span>
+        <span>保存图片</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script define:vars={{ title, url, channelName, date: date.toISOString(), excerpt }}>
+  document.addEventListener('DOMContentLoaded', () => {
+    const shareBtn = document.getElementById('shareBtn');
+    const shareModal = document.getElementById('shareModal');
+    const closeShareModal = document.getElementById('closeShareModal');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const canvas = document.getElementById('shareCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // 打开弹窗
+    shareBtn.addEventListener('click', async () => {
+      shareModal.classList.add('active');
+      await generateShareCard();
+    });
+
+    // 关闭弹窗
+    closeShareModal.addEventListener('click', () => {
+      shareModal.classList.remove('active');
+    });
+
+    shareModal.addEventListener('click', (e) => {
+      if (e.target === shareModal) {
+        shareModal.classList.remove('active');
+      }
+    });
+
+    // 下载图片
+    downloadBtn.addEventListener('click', () => {
+      const link = document.createElement('a');
+      link.download = `share-${Date.now()}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    });
+
+    // 生成分享卡片
+    async function generateShareCard() {
+      const width = 800;
+      const height = 400;
+
+      // 背景
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, width, height);
+
+      // 左侧渐变背景
+      const gradient = ctx.createLinearGradient(0, 0, 300, height);
+      gradient.addColorStop(0, '#2563eb');
+      gradient.addColorStop(1, '#0ea5e9');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, 300, height);
+
+      // 获取二维码
+      try {
+        const qrUrl = `https://uapis.cn/api/v1/image/qrcode?text=${encodeURIComponent(url)}&size=200`;
+        const qrImage = await loadImage(qrUrl);
+        
+        // 绘制二维码白色背景
+        ctx.fillStyle = '#ffffff';
+        roundRect(ctx, 50, 100, 200, 200, 16);
+        ctx.fill();
+        
+        // 绘制二维码
+        ctx.drawImage(qrImage, 60, 110, 180, 180);
+      } catch (e) {
+        console.error('Failed to load QR code:', e);
+        // 绘制占位符
+        ctx.fillStyle = '#ffffff';
+        roundRect(ctx, 50, 100, 200, 200, 16);
+        ctx.fill();
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '14px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('二维码加载失败', 150, 200);
+      }
+
+      // 左侧文字
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 14px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('扫码阅读原文', 150, 340);
+
+      // 右侧内容区域
+      const rightX = 340;
+      const rightWidth = 420;
+
+      // 网站标识
+      ctx.fillStyle = '#2563eb';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText('TURNINGCAT LOG', rightX, 40);
+
+      // 分隔线
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(rightX, 50);
+      ctx.lineTo(rightX + rightWidth, 50);
+      ctx.stroke();
+
+      // 标题（自动换行）
+      ctx.fillStyle = '#0f172a';
+      ctx.font = 'bold 22px sans-serif';
+      const titleLines = wrapText(ctx, title, rightWidth);
+      let titleY = 85;
+      titleLines.forEach(line => {
+        ctx.fillText(line, rightX, titleY);
+        titleY += 30;
+      });
+
+      // 频道名称
+      if (channelName) {
+        ctx.fillStyle = '#64748b';
+        ctx.font = '14px sans-serif';
+        ctx.fillText(`📡 ${channelName}`, rightX, titleY + 15);
+        titleY += 35;
+      }
+
+      // 日期
+      const formattedDate = new Date(date).toLocaleDateString('zh-CN', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '13px sans-serif';
+      ctx.fillText(`📅 ${formattedDate}`, rightX, titleY + 10);
+
+      // 摘要（如果有）
+      if (excerpt) {
+        ctx.fillStyle = '#64748b';
+        ctx.font = '13px sans-serif';
+        const excerptText = excerpt.length > 80 ? excerpt.substring(0, 80) + '...' : excerpt;
+        const excerptLines = wrapText(ctx, excerptText, rightWidth);
+        let excerptY = titleY + 45;
+        excerptLines.slice(0, 2).forEach(line => {
+          ctx.fillText(line, rightX, excerptY);
+          excerptY += 20;
+        });
+      }
+
+      // 底部网站地址
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '12px sans-serif';
+      ctx.textAlign = 'right';
+      ctx.fillText('log.youzix.top', rightX + rightWidth, height - 20);
+
+      // 右侧边框
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(300, 0, width - 300, height);
+    }
+
+    // 加载图片
+    function loadImage(src) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = src;
+      });
+    }
+
+    // 文字换行
+    function wrapText(ctx, text, maxWidth) {
+      const lines = [];
+      let currentLine = '';
+
+      for (let i = 0; i < text.length; i++) {
+        const testLine = currentLine + text[i];
+        const metrics = ctx.measureText(testLine);
+        
+        if (metrics.width > maxWidth && currentLine !== '') {
+          lines.push(currentLine);
+          currentLine = text[i];
+        } else {
+          currentLine = testLine;
+        }
+      }
+      
+      if (currentLine) {
+        lines.push(currentLine);
+      }
+      
+      return lines;
+    }
+
+    // 圆角矩形
+    function roundRect(ctx, x, y, width, height, radius) {
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + width - radius, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+      ctx.lineTo(x + width, y + height - radius);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      ctx.lineTo(x + radius, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.closePath();
+    }
+  });
+</script>
+
+<style>
+  .share-container {
+    display: inline-block;
+  }
+
+  .share-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+  }
+
+  .share-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+  }
+
+  .share-btn .material-symbols-outlined {
+    font-size: 1.125rem;
+  }
+
+  /* 弹窗样式 */
+  .share-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .share-modal.active {
+    display: flex;
+  }
+
+  .share-modal-content {
+    background: white;
+    border-radius: 20px;
+    padding: 1.5rem;
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  }
+
+  .share-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+  }
+
+  .share-modal-header h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #0f172a;
+    margin: 0;
+  }
+
+  .close-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: #f1f5f9;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .close-btn:hover {
+    background: #e2e8f0;
+  }
+
+  .close-btn .material-symbols-outlined {
+    font-size: 1.25rem;
+    color: #64748b;
+  }
+
+  .share-preview {
+    margin-bottom: 1.25rem;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .share-preview canvas {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+
+  .share-actions {
+    display: flex;
+    justify-content: center;
+  }
+
+  .download-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 2rem;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+  }
+
+  .download-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+  }
+
+  .download-btn .material-symbols-outlined {
+    font-size: 1.25rem;
+  }
+</style>
