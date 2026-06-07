@@ -6,7 +6,7 @@ channelName: "Aniruf"
 channelUsername: "Aniruf_x"
 channelAvatar: "/avatars/Aniruf_x.jpg"
 format: txt
-translated: false
+translated: true
 tags: ["Bilix"]
 ---
 
@@ -34,4 +34,26 @@ chore:
 禁止B站站内及国内公众平台传播和宣传
 By @Aniruf_x
 
+## 简体中文
 
+Bilix Beta - 5.31
+
+BiliRoamingX 1.25.4.r2547
+cn 8.96.0 8960400
+
+修复：
+- 修复了一个可能的NPE问题
+- 修复无法屏蔽播放量为零的视频的问题
+- 修复无法使用的清晰度显示可用的问题
+- 修复试用清晰度显示为限免的问题*
+
+家务：
+- 重定向部分外部链接至空间页
+
+
+* 感谢 Ireina 的帮助
+--
+注意事项同上
+反馈问题请至 Github问题
+禁止B站站内及国内公众平台传播和宣传
+作者： @ Aniruf_x
