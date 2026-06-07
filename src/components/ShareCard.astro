@@ -8,14 +8,6 @@ interface Props {
 }
 
 const { title, url, channelName, date, excerpt } = Astro.props;
-
-const formatDate = (d: Date) => {
-  return d.toLocaleDateString('zh-CN', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-};
 ---
 
 <div class="share-container">
@@ -47,6 +39,28 @@ const formatDate = (d: Date) => {
 </div>
 
 <script define:vars={{ title, url, channelName, date: date.toISOString(), excerpt }}>
+  // Material Icons 图标 SVG
+  const ICONS = {
+    group: `<svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24"><path fill="currentColor" d="M0-240v-63q0-43 44-70t116-27q13 0 26.5 1.5t26.5 4.5q-12 21-18 43t-6 45v65H0Zm240 0v-65q0-32 17.5-58.5T307-410q32-24 76.5-38t96.5-14q53 0 97.5 14t76.5 38q32 24 49 50.5t17 58.5v65H240Zm540 0v-65q0-24-6-46t-18-43q13-3 26-4.5t26-1.5q72 0 116 27t44 70v63H780ZM160-440q-33 0-56.5-23.5T80-520q0-33 23.5-56.5T160-600q33 0 56.5 23.5T240-520q0 33-23.5 56.5T160-440Zm640 0q-33 0-56.5-23.5T720-520q0-33 23.5-56.5T800-600q33 0 56.5 23.5T880-520q0 33-23.5 56.5T800-440Zm-320-40q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Z"/></svg>`,
+    calendar: `<svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20"><path fill="currentColor" d="M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-80h80v80h320v-80h80v80h40q33 0 56.5 23.5T840-720v560q0 33-23.5 56.5T760-80H200Zm0-80h560v-400H200v400Zm0-480h560v-80H200v80Zm0 0v-80 80Z"/></svg>`,
+    link: `<svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20"><path fill="currentColor" d="M440-280H280q-83 0-141.5-58.5T80-480q0-83 58.5-141.5T280-680h160v80H280q-50 0-85 35t-35 85q0 50 35 85t85 85h160v80ZM320-440v-80h320v80H320Zm200 160v-80h160q50 0 85-35t35-85q0-50-35-85t-85-85H520v-80h160q83 0 141.5 58.5T880-480q0 83-58.5 141.5T680-280H520Z"/></svg>`,
+  };
+
+  // 将 SVG 转为图片
+  function svgToImage(svgString, size = 24) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const blob = new Blob([svgString], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(blob);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        resolve(img);
+      };
+      img.onerror = reject;
+      img.src = url;
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     const shareBtn = document.getElementById('shareBtn');
     const shareModal = document.getElementById('shareModal');
@@ -58,17 +72,20 @@ const formatDate = (d: Date) => {
     // 打开弹窗
     shareBtn.addEventListener('click', async () => {
       shareModal.classList.add('active');
+      document.body.style.overflow = 'hidden';
       await generateShareCard();
     });
 
     // 关闭弹窗
     closeShareModal.addEventListener('click', () => {
       shareModal.classList.remove('active');
+      document.body.style.overflow = '';
     });
 
     shareModal.addEventListener('click', (e) => {
       if (e.target === shareModal) {
         shareModal.classList.remove('active');
+        document.body.style.overflow = '';
       }
     });
 
@@ -80,12 +97,65 @@ const formatDate = (d: Date) => {
       link.click();
     });
 
+    // 绘制带圆角的矩形
+    function drawRoundRect(x, y, width, height, radius) {
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + width - radius, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+      ctx.lineTo(x + width, y + height - radius);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      ctx.lineTo(x + radius, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.closePath();
+    }
+
+    // 文字换行
+    function wrapText(text, maxWidth, font) {
+      ctx.font = font;
+      const lines = [];
+      let currentLine = '';
+
+      for (let i = 0; i < text.length; i++) {
+        const testLine = currentLine + text[i];
+        const metrics = ctx.measureText(testLine);
+        
+        if (metrics.width > maxWidth && currentLine !== '') {
+          lines.push(currentLine);
+          currentLine = text[i];
+        } else {
+          currentLine = testLine;
+        }
+      }
+      
+      if (currentLine) {
+        lines.push(currentLine);
+      }
+      
+      return lines;
+    }
+
+    // 绘制图标
+    async function drawIcon(iconSvg, x, y, size, color = '#64748b') {
+      try {
+        const img = await svgToImage(iconSvg.replace('currentColor', color));
+        ctx.drawImage(img, x, y, size, size);
+      } catch (e) {
+        console.error('Failed to draw icon:', e);
+      }
+    }
+
     // 生成分享卡片
     async function generateShareCard() {
       const width = 800;
       const height = 400;
 
-      // 背景
+      // 清空画布
+      ctx.clearRect(0, 0, width, height);
+
+      // 白色背景
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, width, height);
 
@@ -103,16 +173,15 @@ const formatDate = (d: Date) => {
         
         // 绘制二维码白色背景
         ctx.fillStyle = '#ffffff';
-        roundRect(ctx, 50, 100, 200, 200, 16);
+        drawRoundRect(50, 100, 200, 200, 16);
         ctx.fill();
         
         // 绘制二维码
         ctx.drawImage(qrImage, 60, 110, 180, 180);
       } catch (e) {
         console.error('Failed to load QR code:', e);
-        // 绘制占位符
         ctx.fillStyle = '#ffffff';
-        roundRect(ctx, 50, 100, 200, 200, 16);
+        drawRoundRect(50, 100, 200, 200, 16);
         ctx.fill();
         ctx.fillStyle = '#94a3b8';
         ctx.font = '14px sans-serif';
@@ -146,8 +215,9 @@ const formatDate = (d: Date) => {
 
       // 标题（自动换行）
       ctx.fillStyle = '#0f172a';
-      ctx.font = 'bold 22px sans-serif';
-      const titleLines = wrapText(ctx, title, rightWidth);
+      const titleFont = 'bold 22px sans-serif';
+      const titleLines = wrapText(title, rightWidth, titleFont);
+      ctx.font = titleFont;
       let titleY = 85;
       titleLines.forEach(line => {
         ctx.fillText(line, rightX, titleY);
@@ -156,9 +226,12 @@ const formatDate = (d: Date) => {
 
       // 频道名称
       if (channelName) {
+        // 绘制 group 图标
+        await drawIcon(ICONS.group, rightX, titleY + 2, 18, '#64748b');
+        
         ctx.fillStyle = '#64748b';
         ctx.font = '14px sans-serif';
-        ctx.fillText(`📡 ${channelName}`, rightX, titleY + 15);
+        ctx.fillText(channelName, rightX + 24, titleY + 16);
         titleY += 35;
       }
 
@@ -168,16 +241,21 @@ const formatDate = (d: Date) => {
         month: 'long',
         day: 'numeric',
       });
+      
+      // 绘制 calendar 图标
+      await drawIcon(ICONS.calendar, rightX, titleY + 2, 16, '#94a3b8');
+      
       ctx.fillStyle = '#94a3b8';
       ctx.font = '13px sans-serif';
-      ctx.fillText(`📅 ${formattedDate}`, rightX, titleY + 10);
+      ctx.fillText(formattedDate, rightX + 22, titleY + 15);
 
       // 摘要（如果有）
       if (excerpt) {
         ctx.fillStyle = '#64748b';
-        ctx.font = '13px sans-serif';
+        const excerptFont = '13px sans-serif';
         const excerptText = excerpt.length > 80 ? excerpt.substring(0, 80) + '...' : excerpt;
-        const excerptLines = wrapText(ctx, excerptText, rightWidth);
+        const excerptLines = wrapText(excerptText, rightWidth, excerptFont);
+        ctx.font = excerptFont;
         let excerptY = titleY + 45;
         excerptLines.slice(0, 2).forEach(line => {
           ctx.fillText(line, rightX, excerptY);
@@ -206,45 +284,6 @@ const formatDate = (d: Date) => {
         img.onerror = reject;
         img.src = src;
       });
-    }
-
-    // 文字换行
-    function wrapText(ctx, text, maxWidth) {
-      const lines = [];
-      let currentLine = '';
-
-      for (let i = 0; i < text.length; i++) {
-        const testLine = currentLine + text[i];
-        const metrics = ctx.measureText(testLine);
-        
-        if (metrics.width > maxWidth && currentLine !== '') {
-          lines.push(currentLine);
-          currentLine = text[i];
-        } else {
-          currentLine = testLine;
-        }
-      }
-      
-      if (currentLine) {
-        lines.push(currentLine);
-      }
-      
-      return lines;
-    }
-
-    // 圆角矩形
-    function roundRect(ctx, x, y, width, height, radius) {
-      ctx.beginPath();
-      ctx.moveTo(x + radius, y);
-      ctx.lineTo(x + width - radius, y);
-      ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-      ctx.lineTo(x + width, y + height - radius);
-      ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-      ctx.lineTo(x + radius, y + height);
-      ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-      ctx.lineTo(x, y + radius);
-      ctx.quadraticCurveTo(x, y, x + radius, y);
-      ctx.closePath();
     }
   });
 </script>
@@ -280,7 +319,7 @@ const formatDate = (d: Date) => {
     font-size: 1.125rem;
   }
 
-  /* 弹窗样式 */
+  /* 弹窗样式 - 毛玻璃效果 */
   .share-modal {
     display: none;
     position: fixed;
@@ -288,8 +327,9 @@ const formatDate = (d: Date) => {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
+    background: rgba(15, 23, 42, 0.3);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     z-index: 1000;
     align-items: center;
     justify-content: center;
@@ -301,13 +341,18 @@ const formatDate = (d: Date) => {
   }
 
   .share-modal-content {
-    background: white;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
     border-radius: 20px;
     padding: 1.5rem;
     max-width: 90vw;
     max-height: 90vh;
     overflow: auto;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    box-shadow: 
+      0 20px 60px rgba(0, 0, 0, 0.15),
+      0 0 0 1px rgba(255, 255, 255, 0.2) inset;
   }
 
   .share-modal-header {
@@ -330,15 +375,17 @@ const formatDate = (d: Date) => {
     justify-content: center;
     width: 36px;
     height: 36px;
-    background: #f1f5f9;
-    border: none;
+    background: rgba(241, 245, 249, 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(226, 232, 240, 0.5);
     border-radius: 10px;
     cursor: pointer;
     transition: all 0.2s ease;
   }
 
   .close-btn:hover {
-    background: #e2e8f0;
+    background: rgba(226, 232, 240, 0.9);
+    transform: scale(1.05);
   }
 
   .close-btn .material-symbols-outlined {
@@ -350,7 +397,9 @@ const formatDate = (d: Date) => {
     margin-bottom: 1.25rem;
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 
+      0 4px 12px rgba(0, 0, 0, 0.1),
+      0 0 0 1px rgba(226, 232, 240, 0.5);
   }
 
   .share-preview canvas {
