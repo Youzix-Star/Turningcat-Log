@@ -18,17 +18,14 @@ const { title, url, channelName, date, excerpt } = Astro.props;
 <!-- 分享弹窗 -->
 <div class="share-overlay" id="shareModal">
   <div class="share-dialog">
-    <!-- 关闭按钮 -->
     <button class="share-close" id="closeShareModal">
       <span class="material-symbols-outlined">close</span>
     </button>
     
-    <!-- 卡片预览 -->
     <div class="share-card-preview">
-      <canvas id="shareCanvas" width="800" height="420"></canvas>
+      <canvas id="shareCanvas" width="800" height="400"></canvas>
     </div>
     
-    <!-- 操作按钮 -->
     <div class="share-actions">
       <button class="share-action-btn" id="downloadBtn">
         <span class="material-symbols-outlined">download</span>
@@ -128,112 +125,112 @@ const { title, url, channelName, date, excerpt } = Astro.props;
     }
 
     async function generateShareCard() {
-      const W = 800, H = 420;
+      const W = 800, H = 400;
       ctx.clearRect(0, 0, W, H);
 
-      // 白色背景
+      // 白色背景 + 圆角
       ctx.fillStyle = '#ffffff';
       drawRoundRect(0, 0, W, H, 20);
       ctx.fill();
 
-      // 左侧蓝色区域
-      ctx.save();
-      drawRoundRect(0, 0, 280, H, 20);
-      ctx.clip();
-      const grad = ctx.createLinearGradient(0, 0, 280, H);
-      grad.addColorStop(0, '#2563eb');
-      grad.addColorStop(1, '#0ea5e9');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, 280, H);
-      // 补全右下角圆角
-      ctx.fillStyle = '#2563eb';
-      ctx.fillRect(260, H - 20, 20, 20);
-      ctx.restore();
+      // 二维码区域（左侧）
+      const qrSize = 180;
+      const qrX = 50;
+      const qrY = (H - qrSize) / 2 - 20;
+
+      // 二维码白色背景
+      ctx.fillStyle = '#f8fafc';
+      drawRoundRect(qrX - 15, qrY - 15, qrSize + 30, qrSize + 30, 16);
+      ctx.fill();
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 1;
+      drawRoundRect(qrX - 15, qrY - 15, qrSize + 30, qrSize + 30, 16);
+      ctx.stroke();
 
       // 二维码
       try {
-        const qrUrl = `https://uapis.cn/api/v1/image/qrcode?text=${encodeURIComponent(url)}&size=180`;
+        const qrUrl = `https://uapis.cn/api/v1/image/qrcode?text=${encodeURIComponent(url)}&size=${qrSize}`;
         const qrImg = await loadImage(qrUrl);
-        ctx.fillStyle = '#ffffff';
-        drawRoundRect(50, 110, 180, 180, 16);
-        ctx.fill();
-        ctx.drawImage(qrImg, 60, 120, 160, 160);
+        ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
       } catch (e) {
-        ctx.fillStyle = '#ffffff';
-        drawRoundRect(50, 110, 180, 180, 16);
-        ctx.fill();
+        ctx.fillStyle = '#e2e8f0';
+        ctx.fillRect(qrX, qrY, qrSize, qrSize);
       }
 
-      // 左侧文字
-      ctx.fillStyle = 'rgba(255,255,255,0.9)';
-      ctx.font = '600 14px sans-serif';
+      // 扫码文字
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '500 14px sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText('扫码阅读原文', 140, 330);
+      ctx.fillText('扫码阅读原文', qrX + qrSize / 2, qrY + qrSize + 30);
 
-      // 右侧内容
-      const rx = 310, rw = 450;
+      // 右侧内容区域
+      const rx = 300;
+      const rw = 460;
 
       // 网站标识
       ctx.fillStyle = '#2563eb';
-      ctx.font = '700 11px sans-serif';
+      ctx.font = '700 12px sans-serif';
       ctx.textAlign = 'left';
-      ctx.letterSpacing = '0.05em';
-      ctx.fillText('TURNINGCAT LOG', rx, 45);
+      ctx.fillText('TURNINGCAT LOG', rx, 50);
 
       // 分隔线
       ctx.strokeStyle = '#f1f5f9';
-      ctx.lineWidth = 1;
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.moveTo(rx, 58);
-      ctx.lineTo(rx + rw, 58);
+      ctx.moveTo(rx, 65);
+      ctx.lineTo(rx + rw, 65);
       ctx.stroke();
 
-      // 标题
+      // 标题（大字）
       ctx.fillStyle = '#0f172a';
-      ctx.font = '700 24px sans-serif';
-      const titleLines = wrapText(title, rw, '700 24px sans-serif');
-      let ty = 95;
+      ctx.font = '700 28px sans-serif';
+      const titleLines = wrapText(title, rw, '700 28px sans-serif');
+      let ty = 105;
       titleLines.slice(0, 3).forEach(line => {
         ctx.fillText(line, rx, ty);
-        ty += 32;
+        ty += 38;
       });
 
-      // 频道
+      // 频道名称
       if (channelName) {
-        await drawIcon(ICONS.group, rx, ty + 4, 18, '#94a3b8');
-        ctx.fillStyle = '#64748b';
-        ctx.font = '500 14px sans-serif';
-        ctx.fillText(channelName, rx + 24, ty + 18);
-        ty += 36;
+        await drawIcon(ICONS.group, rx, ty + 6, 20, '#94a3b8');
+        ctx.fillStyle = '#475569';
+        ctx.font = '500 16px sans-serif';
+        ctx.fillText(channelName, rx + 26, ty + 22);
+        ty += 40;
       }
 
       // 日期
-      const dateStr = new Date(date).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' });
-      await drawIcon(ICONS.calendar, rx, ty + 4, 16, '#cbd5e1');
+      const dateStr = new Date(date).toLocaleDateString('zh-CN', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+      await drawIcon(ICONS.calendar, rx, ty + 6, 18, '#cbd5e1');
       ctx.fillStyle = '#94a3b8';
-      ctx.font = '400 13px sans-serif';
-      ctx.fillText(dateStr, rx + 22, ty + 17);
-      ty += 36;
+      ctx.font = '400 15px sans-serif';
+      ctx.fillText(dateStr, rx + 24, ty + 21);
+      ty += 40;
 
       // 摘要
       if (excerpt) {
         ctx.fillStyle = '#64748b';
-        ctx.font = '400 13px sans-serif';
-        const exText = excerpt.length > 90 ? excerpt.substring(0, 90) + '...' : excerpt;
-        const exLines = wrapText(exText, rw, '400 13px sans-serif');
+        ctx.font = '400 15px sans-serif';
+        const exText = excerpt.length > 80 ? excerpt.substring(0, 80) + '...' : excerpt;
+        const exLines = wrapText(exText, rw, '400 15px sans-serif');
         exLines.slice(0, 2).forEach(line => {
           ctx.fillText(line, rx, ty);
-          ty += 20;
+          ty += 22;
         });
       }
 
       // 底部网址
       ctx.fillStyle = '#cbd5e1';
-      ctx.font = '400 12px sans-serif';
+      ctx.font = '400 13px sans-serif';
       ctx.textAlign = 'right';
-      ctx.fillText('log.youzix.top', rx + rw, H - 28);
+      ctx.fillText('log.youzix.top', rx + rw, H - 24);
 
-      // 边框
+      // 整体边框
       ctx.strokeStyle = '#e2e8f0';
       ctx.lineWidth = 1;
       drawRoundRect(0, 0, W, H, 20);
@@ -253,7 +250,6 @@ const { title, url, channelName, date, excerpt } = Astro.props;
 </script>
 
 <style>
-  /* 分享按钮 */
   .share-btn {
     display: inline-flex;
     align-items: center;
@@ -275,14 +271,12 @@ const { title, url, channelName, date, excerpt } = Astro.props;
     color: #2563eb;
     border-color: #93c5fd;
     background: #eff6ff;
-    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.1);
   }
 
   .share-btn .material-symbols-outlined {
     font-size: 1.125rem;
   }
 
-  /* 弹窗遮罩 */
   .share-overlay {
     position: fixed;
     inset: 0;
@@ -295,7 +289,7 @@ const { title, url, channelName, date, excerpt } = Astro.props;
     z-index: 9999;
     opacity: 0;
     visibility: hidden;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s ease;
     padding: 1rem;
   }
 
@@ -304,7 +298,6 @@ const { title, url, channelName, date, excerpt } = Astro.props;
     visibility: visible;
   }
 
-  /* 弹窗主体 */
   .share-dialog {
     background: #ffffff;
     border-radius: 20px;
@@ -312,18 +305,15 @@ const { title, url, channelName, date, excerpt } = Astro.props;
     max-width: 540px;
     width: 100%;
     position: relative;
-    box-shadow: 
-      0 25px 50px -12px rgba(0, 0, 0, 0.15),
-      0 0 0 1px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
     transform: translateY(20px) scale(0.98);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.3s ease;
   }
 
   .share-overlay.active .share-dialog {
     transform: translateY(0) scale(1);
   }
 
-  /* 关闭按钮 */
   .share-close {
     position: absolute;
     top: 16px;
@@ -344,7 +334,6 @@ const { title, url, channelName, date, excerpt } = Astro.props;
   .share-close:hover {
     background: #fee2e2;
     border-color: #fca5a5;
-    color: #dc2626;
   }
 
   .share-close .material-symbols-outlined {
@@ -356,7 +345,6 @@ const { title, url, channelName, date, excerpt } = Astro.props;
     color: #dc2626;
   }
 
-  /* 卡片预览 */
   .share-card-preview {
     border-radius: 12px;
     overflow: hidden;
@@ -371,7 +359,6 @@ const { title, url, channelName, date, excerpt } = Astro.props;
     height: auto;
   }
 
-  /* 操作按钮 */
   .share-actions {
     display: flex;
     justify-content: center;
@@ -400,10 +387,6 @@ const { title, url, channelName, date, excerpt } = Astro.props;
     box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
   }
 
-  .share-action-btn:active {
-    transform: translateY(0);
-  }
-
   .share-action-btn .material-symbols-outlined {
     font-size: 1.25rem;
   }
@@ -412,11 +395,6 @@ const { title, url, channelName, date, excerpt } = Astro.props;
     .share-dialog {
       padding: 16px;
       border-radius: 16px;
-    }
-
-    .share-action-btn {
-      width: 100%;
-      justify-content: center;
     }
   }
 </style>
