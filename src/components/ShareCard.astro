@@ -133,27 +133,17 @@ const { title, url, channelName, date, excerpt } = Astro.props;
       drawRoundRect(0, 0, W, H, 20);
       ctx.fill();
 
-      // 二维码区域（左侧）
+      // 二维码（左侧，直接绘制，无背景框）
       const qrSize = 180;
-      const qrX = 50;
-      const qrY = (H - qrSize) / 2 - 20;
+      const qrX = 60;
+      const qrY = (H - qrSize) / 2 - 15;
 
-      // 二维码白色背景
-      ctx.fillStyle = '#f8fafc';
-      drawRoundRect(qrX - 15, qrY - 15, qrSize + 30, qrSize + 30, 16);
-      ctx.fill();
-      ctx.strokeStyle = '#e2e8f0';
-      ctx.lineWidth = 1;
-      drawRoundRect(qrX - 15, qrY - 15, qrSize + 30, qrSize + 30, 16);
-      ctx.stroke();
-
-      // 二维码
       try {
         const qrUrl = `https://uapis.cn/api/v1/image/qrcode?text=${encodeURIComponent(url)}&size=${qrSize}`;
         const qrImg = await loadImage(qrUrl);
         ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
       } catch (e) {
-        ctx.fillStyle = '#e2e8f0';
+        ctx.fillStyle = '#f1f5f9';
         ctx.fillRect(qrX, qrY, qrSize, qrSize);
       }
 
@@ -164,8 +154,8 @@ const { title, url, channelName, date, excerpt } = Astro.props;
       ctx.fillText('扫码阅读原文', qrX + qrSize / 2, qrY + qrSize + 30);
 
       // 右侧内容区域
-      const rx = 300;
-      const rw = 460;
+      const rx = 310;
+      const rw = 450;
 
       // 网站标识
       ctx.fillStyle = '#2563eb';
@@ -277,9 +267,13 @@ const { title, url, channelName, date, excerpt } = Astro.props;
     font-size: 1.125rem;
   }
 
+  /* 弹窗遮罩 - 居中 */
   .share-overlay {
     position: fixed;
-    inset: 0;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     background: rgba(0, 0, 0, 0.4);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
@@ -290,7 +284,6 @@ const { title, url, channelName, date, excerpt } = Astro.props;
     opacity: 0;
     visibility: hidden;
     transition: all 0.3s ease;
-    padding: 1rem;
   }
 
   .share-overlay.active {
@@ -298,22 +291,26 @@ const { title, url, channelName, date, excerpt } = Astro.props;
     visibility: visible;
   }
 
+  /* 弹窗主体 */
   .share-dialog {
     background: #ffffff;
     border-radius: 20px;
     padding: 24px;
     max-width: 540px;
-    width: 100%;
+    width: calc(100% - 2rem);
     position: relative;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+    box-shadow: 
+      0 25px 50px -12px rgba(0, 0, 0, 0.25),
+      0 0 0 1px rgba(0, 0, 0, 0.05);
     transform: translateY(20px) scale(0.98);
-    transition: transform 0.3s ease;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .share-overlay.active .share-dialog {
     transform: translateY(0) scale(1);
   }
 
+  /* 关闭按钮 */
   .share-close {
     position: absolute;
     top: 16px;
@@ -345,12 +342,11 @@ const { title, url, channelName, date, excerpt } = Astro.props;
     color: #dc2626;
   }
 
+  /* 卡片预览 */
   .share-card-preview {
     border-radius: 12px;
     overflow: hidden;
-    border: 1px solid #f1f5f9;
     margin-bottom: 20px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
   }
 
   .share-card-preview canvas {
@@ -359,6 +355,7 @@ const { title, url, channelName, date, excerpt } = Astro.props;
     height: auto;
   }
 
+  /* 操作按钮 */
   .share-actions {
     display: flex;
     justify-content: center;
@@ -384,7 +381,6 @@ const { title, url, channelName, date, excerpt } = Astro.props;
   .share-action-btn:hover {
     background: #1d4ed8;
     transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
   }
 
   .share-action-btn .material-symbols-outlined {
