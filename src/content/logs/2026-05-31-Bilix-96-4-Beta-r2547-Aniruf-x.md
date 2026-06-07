@@ -5,7 +5,7 @@ source: "https://t.me/Aniruf_x"
 channelName: "Aniruf"
 channelUsername: "Aniruf_x"
 channelAvatar: "/avatars/Aniruf_x.jpg"
-format: md
+format: txt
 translated: false
 tags: ["Bilix"]
 ---
