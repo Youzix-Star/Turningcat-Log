@@ -6,7 +6,8 @@ channelName: "LibChecker CI"
 channelUsername: "libchecker_ci"
 channelAvatar: "/avatars/libchecker_ci.jpg"
 format: txt
-translated: true
+translated: false
+tags: ["LibChecker"]
 ---
 
 ## 原文
@@ -14,13 +15,7 @@ translated: true
 New push to github!
 Misc changes.
 by Absinthe
-See commit detail here
+See commit detail [here](https://github.com/LibChecker/LibChecker/commit/dfd7c3c4c0b65905f2d6f5ddee604bac043eb941)
 Snapshot apk is attached
 
-## 简体中文
 
-新的推送到github！
-杂项更改。
-作者：Absinthe
-查看提交详情
-附上快照apk
