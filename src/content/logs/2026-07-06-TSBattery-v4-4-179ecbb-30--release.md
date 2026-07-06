@@ -19,7 +19,7 @@ See commit detail [here](https://github.com/fankes/TSBattery/commit/179ecbb37f16
 
 ## 简体中文
 
-向GitHub的新推送！
-杂务：更新依赖
-由fankesyooni
-点击此处查看提交详情
+新推送到 GitHub！
+杂项：更新依赖
+作者：fankesyooni
+在此查看提交详情
